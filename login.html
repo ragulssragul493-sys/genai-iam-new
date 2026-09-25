@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block content %}
+<div class="row justify-content-center mt-5"><div class="col-md-5">
+<div class="card p-4">
+<h2 class="mb-1">Identity & Access Management</h2><p class="text-secondary">Generative AI platform access portal</p>
+<form method="post">
+<label class="form-label">Email</label><input class="form-control mb-3" name="email" type="email" required placeholder="admin@example.com">
+<label class="form-label">Password</label><input class="form-control mb-3" name="password" type="password" required>
+<button class="btn btn-dark w-100">Sign in</button>
+</form>
+<hr><div class="small text-secondary">Demo admin: admin@example.com / admin123<br>Demo user: user@example.com / user123</div>
+</div></div></div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+<div><h1 class="fw-bold">Access Dashboard</h1><p class="text-secondary mb-0">Manage identity, AI platform access and audit activity.</p></div>
+<span class="badge bg-dark pill px-3 py-2">{{session.get('role')|upper}}</span>
+</div>
+
+{% if session.get('role') == 'user' %}
+<div class="row g-4">
+<div class="col-lg-5"><div class="card p-4"><h4>Request AI access</h4>
+<form method="post" action="{{url_for('request_access')}}">
+<label class="form-label">Platform</label><select class="form-select mb-3" name="platform_id">
+{% for p in platforms %}<option value="{{p.id}}">{{p.name}} — {{p.provider}}</option>{% endfor %}
+</select>
+<label class="form-label">Business reason</label><textarea class="form-control mb-3" name="reason" rows="4" placeholder="Why do you need access?"></textarea>
+<button class="btn btn-primary">Submit request</button>
+</form></div></div>
+<div class="col-lg-7"><div class="card p-4"><h4>My requests</h4>
+<table class="table"><thead><tr><th>Platform</th><th>Reason</th><th>Status</th></tr></thead><tbody>
+{% for r in requests %}<tr><td>{{r.platform_name}}</td><td>{{r.reason or '—'}}</td><td><span class="badge {% if r.status=='Approved' %}bg-success{% elif r.status=='Rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{r.status}}</span></td></tr>{% else %}<tr><td colspan="3">No requests yet.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% else %}
+<div class="row g-4">
+<div class="col-md-3"><div class="card p-4"><div class="text-secondary">Users</div><h2>{{users|length}}</h2></div></div>
+<div class="col-md-3"><div class="card p-4"><div class="text-secondary">AI Platforms</div><h2>{{platforms|length}}</h2></div></div>
+<div class="col-md-3"><div class="card p-4"><div class="text-secondary">Pending</div><h2>{{requests|selectattr('status','equalto','Pending')|list|length}}</h2></div></div>
+<div class="col-md-3"><div class="card p-4"><div class="text-secondary">Audit events</div><h2>{{logs|length}}+</h2></div></div>
+</div>
+<div class="card p-4 mt-4"><h4>Access requests</h4>
+<div class="table-responsive"><table class="table"><thead><tr><th>User</th><th>Platform</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for r in requests %}<tr><td>{{r.user_name}}<br><small>{{r.email}}</small></td><td>{{r.platform_name}}</td><td>{{r.reason or '—'}}</td><td>{{r.status}}</td><td>
+{% if r.status=='Pending' %}<form method="post" action="{{url_for('update_request',req_id=r.id,action='Approved')}}" class="d-inline"><button class="btn btn-sm btn-success">Approve</button></form>
+<form method="post" action="{{url_for('update_request',req_id=r.id,action='Rejected')}}" class="d-inline"><button class="btn btn-sm btn-outline-danger">Reject</button></form>{% else %}—{% endif %}
+</td></tr>{% else %}<tr><td colspan="5">No requests.</td></tr>{% endfor %}
+</tbody></table></div></div>
+
+<div class="row g-4 mt-1">
+<div class="col-lg-7"><div class="card p-4"><h4>User management</h4><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>
+{% for u in users %}<tr><td>{{u.name}}</td><td>{{u.email}}</td><td>{{u.role}}</td><td>{{'Active' if u.active else 'Disabled'}}</td><td>{% if u.id != session.get('user_id') %}<form method="post" action="{{url_for('toggle_user',user_id=u.id)}}"><button class="btn btn-sm btn-outline-secondary">{{'Disable' if u.active else 'Enable'}}</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></div>
+<div class="col-lg-5"><div class="card p-4"><h4>Audit log</h4>{% for l in logs %}<div class="border-bottom py-2"><b>{{l.action}}</b><br><small>{{l.actor}} · {{l.created_at}} · {{l.details}}</small></div>{% endfor %}</div></div>
+</div>
+{% endif %}
+{% endblock %}
